@@ -31,7 +31,7 @@ services:
     volumes:
       - mongodata1:/data/db
     networks:
-      - starter-network
+      - mongo-network
     ports:
       - "27017:27017"
   mongo2:
@@ -54,7 +54,7 @@ services:
     volumes:
       - mongodata2:/data/db
     networks:
-      - starter-network
+      - mongo-network
     ports:
       - "27018:27017"
   mongo3:
@@ -77,7 +77,7 @@ services:
     volumes:
       - mongodata3:/data/db
     networks:
-      - starter-network
+      - mongo-network
     ports:
       - "27019:27017"
   express:
@@ -93,7 +93,7 @@ services:
       - ME_CONFIG_MONGODB_ADMINPASSWORD=${ROOT_PASSWORD:-secret}
       - ME_CONFIG_MONGODB_SERVER=mong1,mongo2,mongo3
     networks:
-      - starter-network
+      - mongo-network
     ports:
       - "8080:8081"
 
