@@ -1,0 +1,104 @@
+version: '3.3'
+networks:
+  mongo-network:
+    external:
+      name: mongo-network
+
+configs:
+  mongodb_key:
+    file: ./mongo/mongodb.key
+
+services:  
+  mongo1:
+    image: "mongo:4.0-xenial"
+    deploy:
+        replicas: 1
+        restart_policy:
+          condition: on-failure
+        placement:
+          constraints: [node.labels.mongo.replica == 1]
+    configs:
+      - source: mongodb_key
+        target: /etc/mongo/mongodb.key
+        uid: '999'
+        gid: '999'
+        mode: 0600
+    command: --replSet rs0 --smallfiles --oplogSize 128 --auth --keyFile /etc/mongo/mongodb.key
+    environment:
+       - TZ=Asia/Shanghai
+       - MONGO_INITDB_ROOT_USERNAME=${ROOT_USERNAME:-mongoadmin}
+       - MONGO_INITDB_ROOT_PASSWORD=${ROOT_PASSWORD:-secret}
+    volumes:
+      - mongodata1:/data/db
+    networks:
+      - starter-network
+    ports:
+      - "27017:27017"
+  mongo2:
+    image: "mongo:4.0-xenial"
+    deploy:
+        replicas: 1
+        restart_policy:
+          condition: on-failure
+        placement:
+          constraints: [node.labels.mongo.replica == 2]
+    configs:
+      - source: mongodb_key
+        target: /etc/mongo/mongodb.key
+        uid: '999'
+        gid: '999'
+        mode: 0600
+    command: --replSet rs0 --smallfiles --oplogSize 128  --auth --keyFile /etc/mongo/mongodb.key
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - mongodata2:/data/db
+    networks:
+      - starter-network
+    ports:
+      - "27018:27017"
+  mongo3:
+    image: "mongo:4.0-xenial"
+    deploy:
+        replicas: 1
+        restart_policy:
+          condition: on-failure
+        placement:
+          constraints: [node.labels.mongo.replica == 3]
+    configs:
+      - source: mongodb_key
+        target: /etc/mongo/mongodb.key
+        uid: '999'
+        gid: '999'
+        mode: 0600
+    command: --replSet rs0 --smallfiles --oplogSize 128 --auth --keyFile /etc/mongo/mongodb.key
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - mongodata3:/data/db
+    networks:
+      - starter-network
+    ports:
+      - "27019:27017"
+  express:
+    image: mongo-express:0.49
+    deploy:
+        replicas: 1
+        restart_policy:
+          condition: on-failure
+    environment:
+      - ME_CONFIG_BASICAUTH_USERNAME=${EXPRESS_USERNAME:-admin}
+      - ME_CONFIG_BASICAUTH_PASSWORD=${EXPRESS_PASSWORD:-admin_pass}
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${ROOT_USERNAME:-mongoadmin}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${ROOT_PASSWORD:-secret}
+      - ME_CONFIG_MONGODB_SERVER=mong1,mongo2,mongo3
+    networks:
+      - starter-network
+    ports:
+      - "8080:8081"
+
+
+volumes:
+  mongodata1:
+  mongodata2:
+  mongodata3:   
