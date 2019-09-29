@@ -6,4 +6,4 @@ else
 	docker network create -d overlay  mongo-network
 fi
 
-docker stack deploy --with-registry-auth -c offline-stack.yml offline
+docker stack deploy --with-registry-auth -c offline-stack.yaml offline
