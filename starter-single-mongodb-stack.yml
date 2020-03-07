@@ -1,0 +1,42 @@
+version: '3.3'
+networks:
+  mongo-network:
+    external:
+      name: mongo-network
+      
+services:
+  singlemongo:
+    image: "mongo:latest"
+    deploy:
+        replicas: 1
+        restart_policy:
+          condition: on-failure
+    environment:
+       - TZ=Asia/Shanghai
+       - MONGO_INITDB_ROOT_USERNAME=${ROOT_USERNAME:-mongoadmin}
+       - MONGO_INITDB_ROOT_PASSWORD=${ROOT_PASSWORD:-secret}
+    volumes:
+      - mongodata:/data/db
+    networks:
+      - mongo-network
+    ports:
+      - "27017:27017"
+  express:
+    image: mongo-express:latest
+    deploy:
+        replicas: 1
+        restart_policy:
+          condition: on-failure
+    environment:
+      - ME_CONFIG_BASICAUTH_USERNAME=${EXPRESS_USERNAME:-admin}
+      - ME_CONFIG_BASICAUTH_PASSWORD=${EXPRESS_PASSWORD:-admin_pass}
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${ROOT_USERNAME:-mongoadmin}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${ROOT_PASSWORD:-secret}
+      - ME_CONFIG_MONGODB_SERVER=singlemongo
+    networks:
+      - mongo-network
+    ports:
+      - "8080:8081"
+
+volumes:
+  mongodata:
